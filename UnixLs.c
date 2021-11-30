@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
  #include <sys/stat.h>
 #include <dirent.h>
 #include <time.h>
@@ -68,59 +69,71 @@ static char* getFileName(char* fileName) {
     return fileName;
 }
 
-void UnixLs_ls(char* dirName, char* options) {
+void UnixLs_ls(char* dirName, bool isI, bool isL, int optionsLen) {
+    printf("\n");
 	DIR* pDir = opendir(dirName);
     if (pDir == NULL) {
         printf("ERROR: Directory doesn't exist!\n");
         return;
     }
     struct dirent* pDirEntry = readdir(pDir);
-	while (pDirEntry != NULL)
-	{   
-        if (options == NULL) {
-            if (pDirEntry->d_name[0] == '.'){
-                pDirEntry = readdir(pDir);
-                continue;
-            }
-            printf("%s  ", pDirEntry->d_name);
+	while (pDirEntry != NULL) {   
+        struct stat statBuffer;
+        stat(pDirEntry->d_name, &statBuffer);
+
+        // skip hidden
+        if (pDirEntry->d_name[0] == '.'){
             pDirEntry = readdir(pDir);
+            continue;
         }
-        else {
-            // -i: print the index number of each file
-            if (strlen(options) == 2 && strstr(options, "i")) {
-                // skip hidden files
-                if (pDirEntry->d_name[0] == '.'){
-                    pDirEntry = readdir(pDir);
-                    continue;
-                }
-                struct stat statBuffer;
-                stat(pDirEntry->d_name, &statBuffer);
-                printf("%ld %s  ", statBuffer.st_ino ,pDirEntry->d_name);
-                pDirEntry = readdir(pDir);
-            }
-            // -l: use a long listing format
-            else if (strstr(options, "l")) {
-                if (pDirEntry->d_name[0] == '.'){
-                    pDirEntry = readdir(pDir);
-                    continue;
-                }
-                struct stat statBuffer;
-                stat(pDirEntry->d_name, &statBuffer);
-                // parse values to be printed
-                char* groupName = getGroup(statBuffer.st_gid);
-                char* userName = getUserName(statBuffer.st_uid);
-                char* mtime = getDate(statBuffer.st_mtime);
-                char* permissions = getPermissions(statBuffer.st_mode, pDirEntry->d_type);
-                char* fileName = getFileName(pDirEntry->d_name);
-                if (strstr(options, "i")) {
-                    // -li or -il option
-                    printf("%ld %s %ld %s %s %ld %s %s\n", statBuffer.st_ino, permissions, statBuffer.st_nlink, userName, groupName, statBuffer.st_size, mtime, fileName);
-                } else {
-                    printf("%s %ld %s %s %ld %s %s\n", permissions, statBuffer.st_nlink, userName, groupName, statBuffer.st_size, mtime, fileName);
-                }
-                pDirEntry = readdir(pDir);
-            }
+        // no options
+        if (optionsLen == 0) {
+            printf("%s ", pDirEntry->d_name);
         } 
+        // -i: print the index number of each file
+        else if (optionsLen == 1 && isI) {
+            printf("%ld %s  ", statBuffer.st_ino ,pDirEntry->d_name);
+        }
+        // -l: use a long listing format
+        else if (isL) {
+            // parse values to be printed
+            char* groupName = getGroup(statBuffer.st_gid);
+            char* userName = getUserName(statBuffer.st_uid);
+            char* mtime = getDate(statBuffer.st_mtime);
+            char* permissions = getPermissions(statBuffer.st_mode, pDirEntry->d_type);
+            char* fileName = getFileName(pDirEntry->d_name);
+            if (isI) {
+                // -li or -il option
+                printf("%ld %s %ld %s %s %ld %s %s\n", statBuffer.st_ino, permissions, statBuffer.st_nlink, userName, groupName, statBuffer.st_size, mtime, fileName);
+            } else {
+                printf("%s %ld %s %s %ld %s %s\n", permissions, statBuffer.st_nlink, userName, groupName, statBuffer.st_size, mtime, fileName);
+            }
+        }
+        pDirEntry = readdir(pDir);
 	}
     printf("\n");
+}
+
+void UnixLs_recurse(char* dirName, bool isI, bool isL, int optionsLen) {
+    char path[1000];
+    struct dirent *dp;
+    DIR *dir = opendir(dirName);
+
+    // Unable to open directory stream
+    if (!dir)
+        return;
+
+    printf("\n%s:", dirName);
+    UnixLs_ls(dirName, isI, isL, optionsLen);
+    dp = readdir(dir);
+    while (dp != NULL) {
+        if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0 && dp->d_type == DT_DIR) {
+            // Construct new path from our base path
+            strcpy(path, dirName);
+            strcat(path, "/");
+            strcat(path, dp->d_name);
+            UnixLs_recurse(path, isI, isL, optionsLen);
+        }
+        dp = readdir(dir);
+    }
 }
