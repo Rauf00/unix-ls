@@ -34,7 +34,9 @@ int main(int argc, const char *argv[]) {
     } 
     // options, no path
     else if (argc == 2 && strstr(argv[1], "-")) {
-        getOptions(argv[1]);
+        char options[4];
+        strcpy(options, argv[1]);
+        getOptions(options);
         if (isR) {
             UnixLs_recurse(".", isI, isL, optionsLen);
         } else {
@@ -50,15 +52,16 @@ int main(int argc, const char *argv[]) {
     // path, options
     else if (argc == 3 && strstr(argv[1], "-")) {
         char dirName[100];
-        getOptions(argv[1]);
+        char options[4];
         strcpy(dirName, argv[2]);
+        strcpy(options, argv[1]);
+        getOptions(options);
         if (isR) {
             UnixLs_recurse(dirName, isI, isL, optionsLen);
         } else {
             UnixLs_ls(dirName, isI, isL, optionsLen);
         }
     }
-    
     return 0;
 }
 

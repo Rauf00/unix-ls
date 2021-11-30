@@ -116,24 +116,24 @@ void UnixLs_ls(char* dirName, bool isI, bool isL, int optionsLen) {
 
 void UnixLs_recurse(char* dirName, bool isI, bool isL, int optionsLen) {
     char path[1000];
-    struct dirent *dp;
-    DIR *dir = opendir(dirName);
+    struct dirent *pDir;
+    DIR *pDirEntry = opendir(dirName);
 
     // Unable to open directory stream
-    if (!dir)
+    if (!pDirEntry)
         return;
 
     printf("\n%s:", dirName);
     UnixLs_ls(dirName, isI, isL, optionsLen);
-    dp = readdir(dir);
-    while (dp != NULL) {
-        if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0 && dp->d_type == DT_DIR) {
+    pDir = readdir(pDirEntry);
+    while (pDir != NULL) {
+        if (strcmp(pDir->d_name, ".") != 0 && strcmp(pDir->d_name, "..") != 0 && pDir->d_type == DT_DIR) {
             // Construct new path from our base path
             strcpy(path, dirName);
             strcat(path, "/");
-            strcat(path, dp->d_name);
+            strcat(path, pDir->d_name);
             UnixLs_recurse(path, isI, isL, optionsLen);
         }
-        dp = readdir(dir);
+        pDir = readdir(pDirEntry);
     }
 }
