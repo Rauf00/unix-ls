@@ -87,7 +87,7 @@ void UnixLs_ls(char* dirName, bool isI, bool isL, int optionsLen) {
         strcpy(pathBuffer, dirName);
         strcat(pathBuffer, "/");
         strcat(pathBuffer, pDirEntry->d_name);
-        stat(pathBuffer, &statBuffer);
+        lstat(pathBuffer, &statBuffer);
 
         // skip hidden files
         if (pDirEntry->d_name[0] == '.'){
@@ -119,29 +119,29 @@ void UnixLs_ls(char* dirName, bool isI, bool isL, int optionsLen) {
         }
         pDirEntry = readdir(pDir);
 	}
+    closedir(pDir);
     printf("\n");
 }
 
 void UnixLs_recurse(char* dirName, bool isI, bool isL, int optionsLen) {
     char path[MAX_FILE_PATH_SIZE];
-    struct dirent *pDir;
-    DIR *pDirEntry = opendir(dirName);
-
+    DIR *pDir = opendir(dirName);
     // Unable to open directory stream
-    if (!pDirEntry)
+    if (pDir == NULL) {
         return;
-
+    }
     printf("\n%s:", dirName);
     UnixLs_ls(dirName, isI, isL, optionsLen);
-    pDir = readdir(pDirEntry);
-    while (pDir != NULL) {
-        if (strcmp(pDir->d_name, ".") != 0 && strcmp(pDir->d_name, "..") != 0 && pDir->d_type == DT_DIR) {
+    struct dirent *pDirEntry = readdir(pDir);
+    while (pDirEntry != NULL) {
+        if (strcmp(pDirEntry->d_name, ".") != 0 && strcmp(pDirEntry->d_name, "..") != 0 && pDirEntry->d_type == DT_DIR) {
             // Construct new path from our base path
             strcpy(path, dirName);
             strcat(path, "/");
-            strcat(path, pDir->d_name);
+            strcat(path, pDirEntry->d_name);
             UnixLs_recurse(path, isI, isL, optionsLen);
         }
-        pDir = readdir(pDirEntry);
+        pDirEntry = readdir(pDir);
     }
+    closedir(pDir);
 }
