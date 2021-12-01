@@ -79,9 +79,15 @@ void UnixLs_ls(char* dirName, bool isI, bool isL, int optionsLen) {
     struct dirent* pDirEntry = readdir(pDir);
 	while (pDirEntry != NULL) {   
         struct stat statBuffer;
-        stat(pDirEntry->d_name, &statBuffer);
 
-        // skip hidden
+        // construct file path
+        char pathBuffer[4096];
+        strcpy(pathBuffer, dirName);
+        strcat(pathBuffer, "/");
+        strcat(pathBuffer, pDirEntry->d_name);
+        stat(pathBuffer, &statBuffer);
+
+        // skip hidden files
         if (pDirEntry->d_name[0] == '.'){
             pDirEntry = readdir(pDir);
             continue;
