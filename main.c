@@ -4,10 +4,12 @@
 #include <stdbool.h>
 #include "UnixLs.h"
 
-bool isL = false;
-bool isI = false;
-bool isR = false;
-int optionsLen = 0;
+#define MAX_FILE_PATH_SIZE 4096
+
+static bool isL = false;
+static bool isI = false;
+static bool isR = false;
+static int optionsLen = 0;
 
 static void getOptions(char* options) {
     if (strstr(options, "l")) {
@@ -45,13 +47,13 @@ int main(int argc, const char *argv[]) {
     } 
     // path, no options
     else if (argc == 2 && !strstr(argv[1], "-")) {
-        char dirName[100];
+        char dirName[MAX_FILE_PATH_SIZE];
         strcpy(dirName, argv[1]);
         UnixLs_ls(dirName, isI, isL, optionsLen);
     } 
     // path, options
     else if (argc == 3 && strstr(argv[1], "-")) {
-        char dirName[100];
+        char dirName[MAX_FILE_PATH_SIZE];
         char options[4];
         strcpy(dirName, argv[2]);
         strcpy(options, argv[1]);

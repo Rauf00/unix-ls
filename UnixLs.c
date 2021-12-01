@@ -2,12 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
- #include <sys/stat.h>
+#include <sys/stat.h>
 #include <dirent.h>
 #include <time.h>
 #include <unistd.h>
 #include <grp.h>
 #include <pwd.h>
+
+#define MAX_FILE_PATH_SIZE 4096
 
 static char* getGroup(gid_t grpNum) {
   struct group *grp;
@@ -30,14 +32,14 @@ static char* getUserName(uid_t uid) {
 }
 
 static char* getDate(time_t mtime) {
-    static char date[80];
+    static char date[80]; // ??????
     struct tm* localModifiedTime = localtime(&mtime);
     strftime(date, sizeof date, "%b %d %Y %H:%M", localModifiedTime);
     return date;
 }
 
 static char* getPermissions(mode_t mode, int fileType) {
-    static char permissions[10];
+    static char permissions[10]; // ??????
     // is symbolic link?
     if (fileType == DT_LNK) {
         return "lrwxrwxrwx";
@@ -60,7 +62,7 @@ static char* getPermissions(mode_t mode, int fileType) {
 }
 
 static char* getFileName(char* fileName) {
-    char linkNameBuffer[100]; // is 100 reasonable size for linked filename????????????
+    char linkNameBuffer[MAX_FILE_PATH_SIZE]; // is 100 reasonable size for linked filename????????????
     ssize_t count = readlink(fileName, linkNameBuffer, 100);
     if (count != -1) {
         strncat(fileName, "->", 3);
@@ -81,7 +83,7 @@ void UnixLs_ls(char* dirName, bool isI, bool isL, int optionsLen) {
         struct stat statBuffer;
 
         // construct file path
-        char pathBuffer[4096];
+        char pathBuffer[MAX_FILE_PATH_SIZE];
         strcpy(pathBuffer, dirName);
         strcat(pathBuffer, "/");
         strcat(pathBuffer, pDirEntry->d_name);
@@ -121,7 +123,7 @@ void UnixLs_ls(char* dirName, bool isI, bool isL, int optionsLen) {
 }
 
 void UnixLs_recurse(char* dirName, bool isI, bool isL, int optionsLen) {
-    char path[1000];
+    char path[MAX_FILE_PATH_SIZE];
     struct dirent *pDir;
     DIR *pDirEntry = opendir(dirName);
 
