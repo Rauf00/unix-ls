@@ -9,9 +9,14 @@
 static bool isL = false;
 static bool isI = false;
 static bool isR = false;
+static bool isPathOption = false;
 static int optionsLen = 0;
 
 static void getOptions(char* options) {
+    if (!strstr(options, "l") && !strstr(options, "i") && !strstr(options, "R")) {
+        printf("Error: invalid option\n");
+        exit(1);
+    }
     if (strstr(options, "l")) {
         isL = true;
         optionsLen++;
@@ -26,42 +31,39 @@ static void getOptions(char* options) {
 }
 
 int main(int argc, const char *argv[]) {
-    if (argc > 3) {
+    if (argc > 5) {
         printf("Invalid num of args\n");
         return 0;
     }
-    // no options, no path
-    if (argc == 1) {
+
+    if(argc == 1) {
         UnixLs_ls(".", isI, isL, optionsLen);
-    } 
-    // options, no path
-    else if (argc == 2 && strstr(argv[1], "-")) {
-        char options[5];
-        strcpy(options, argv[1]);
-        getOptions(options);
-        if (isR) {
-            UnixLs_recurse(".", isI, isL, optionsLen);
+        return 0;
+    }
+
+    for (int i = 1; i < argc; i++) {
+        if (strstr(argv[i], "-")) {
+            char options[5];
+            strcpy(options, argv[i]);
+            getOptions(options);
         } else {
-            UnixLs_ls(".", isI, isL, optionsLen);
+            isPathOption = true;
         }
-    } 
-    // path, no options
-    else if (argc == 2 && !strstr(argv[1], "-")) {
+    }
+
+    if (isPathOption) {
         char dirName[MAX_FILE_PATH_SIZE];
-        strcpy(dirName, argv[1]);
-        UnixLs_ls(dirName, isI, isL, optionsLen);
-    } 
-    // path, options
-    else if (argc == 3 && strstr(argv[1], "-")) {
-        char dirName[MAX_FILE_PATH_SIZE];
-        char options[5];
-        strcpy(dirName, argv[2]);
-        strcpy(options, argv[1]);
-        getOptions(options);
+        strcpy(dirName, argv[argc - 1]);
         if (isR) {
             UnixLs_recurse(dirName, isI, isL, optionsLen);
         } else {
             UnixLs_ls(dirName, isI, isL, optionsLen);
+        }
+    } else {
+        if (isR) {
+            UnixLs_recurse(".", isI, isL, optionsLen);
+        } else {
+            UnixLs_ls(".", isI, isL, optionsLen);
         }
     }
     return 0;
