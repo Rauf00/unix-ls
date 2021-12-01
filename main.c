@@ -36,7 +36,7 @@ int main(int argc, const char *argv[]) {
     } 
     // options, no path
     else if (argc == 2 && strstr(argv[1], "-")) {
-        char options[4];
+        char options[5];
         strcpy(options, argv[1]);
         getOptions(options);
         if (isR) {
@@ -54,7 +54,7 @@ int main(int argc, const char *argv[]) {
     // path, options
     else if (argc == 3 && strstr(argv[1], "-")) {
         char dirName[MAX_FILE_PATH_SIZE];
-        char options[4];
+        char options[5];
         strcpy(dirName, argv[2]);
         strcpy(options, argv[1]);
         getOptions(options);
