@@ -39,29 +39,47 @@ static char* getDate(time_t mtime) {
 }
 
 static char* getPermissions(mode_t mode, int fileType) {
-    static char permissions[10]; // ??????
+    static char permissions[10];
     // is symbolic link?
     if (fileType == DT_LNK) {
         permissions[0] = 'l';
-    } else if (S_ISDIR(mode)) {
+    } 
+    // is directory?
+    else if (S_ISDIR(mode)) {
         permissions[0] = 'd'; 
     } else {
         permissions[0] = '-'; 
     }
-    // is directory?
-    // permissions[0] = (S_ISDIR(mode)) ? 'd' : '-'; 
     // user permissions
     permissions[1] = (mode & S_IRUSR) ? 'r' : '-'; 
     permissions[2] = (mode & S_IWUSR) ? 'w' : '-'; 
-    permissions[3] = (mode & S_IXUSR) ? 'x' : '-';
-    // user permissions
+    if (mode & S_ISUID) {
+        permissions[3] = 's';
+    } else if (mode & S_IXUSR) {
+        permissions[3] = 'x';
+    } else {
+        permissions[3] = '-';
+    }
+    // group permissions
     permissions[4] = (mode & S_IRGRP ) ? 'r' : '-'; 
     permissions[5] = (mode & S_IWGRP ) ? 'w' : '-'; 
-    permissions[6] = (mode & S_IXGRP ) ? 'x' : '-';
-    // user permissions
+    if (mode & S_ISGID) {
+        permissions[6] = 's';
+    } else if (mode & S_IXGRP) {
+        permissions[6] = 'x';
+    } else {
+        permissions[6] = '-';
+    }
+    // other permissions
     permissions[7] = (mode & S_IROTH ) ? 'r' : '-'; 
     permissions[8] = (mode & S_IWOTH) ? 'w' : '-'; 
-    permissions[9] = (mode & S_IXOTH) ? 'x' : '-';
+    if (mode & S_ISVTX) {
+        permissions[9] = 't';
+    } else if (mode & S_IXOTH) {
+        permissions[9] = 'x';
+    } else {
+        permissions[9] = '-';
+    }
     return permissions;
 }
 
