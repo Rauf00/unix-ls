@@ -32,7 +32,7 @@ static char* getUserName(uid_t uid) {
 }
 
 static char* getDate(time_t mtime) {
-    static char date[80]; // ??????
+    static char date[20];
     struct tm* localModifiedTime = localtime(&mtime);
     strftime(date, sizeof date, "%b %d %Y %H:%M", localModifiedTime);
     return date;
