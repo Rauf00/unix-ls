@@ -1,13 +1,13 @@
 all: build
 
 build:
-	gcc -g UnixLs.c main.c -o ls
+	gcc -g UnixLs.c main.c -o UnixLs
 	
 run: build
-	./ls
+	./UnixLs
 
 valgrind: build
-	valgrind --leak-check=full ./ls
+	valgrind --leak-check=full ./UnixLs
 
 clean:
-	rm -f ls
+	rm -f UnixLs

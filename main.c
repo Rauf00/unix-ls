@@ -37,7 +37,7 @@ int main(int argc, const char *argv[]) {
     }
 
     if(argc == 1) {
-        UnixLs_ls(".", isI, isL, optionsLen);
+        UnixLs_ls(".", isI, isL, isR, optionsLen);
         return 0;
     }
 
@@ -57,13 +57,13 @@ int main(int argc, const char *argv[]) {
         if (isR) {
             UnixLs_recurse(dirName, isI, isL, optionsLen);
         } else {
-            UnixLs_ls(dirName, isI, isL, optionsLen);
+            UnixLs_ls(dirName, isI, isL, isR, optionsLen);
         }
     } else {
         if (isR) {
             UnixLs_recurse(".", isI, isL, optionsLen);
         } else {
-            UnixLs_ls(".", isI, isL, optionsLen);
+            UnixLs_ls(".", isI, isL, isR, optionsLen);
         }
     }
     return 0;

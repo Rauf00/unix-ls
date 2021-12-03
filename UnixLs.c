@@ -42,10 +42,14 @@ static char* getPermissions(mode_t mode, int fileType) {
     static char permissions[10]; // ??????
     // is symbolic link?
     if (fileType == DT_LNK) {
-        return "lrwxrwxrwx";
+        permissions[0] = 'l';
+    } else if (S_ISDIR(mode)) {
+        permissions[0] = 'd'; 
+    } else {
+        permissions[0] = '-'; 
     }
     // is directory?
-    permissions[0] = (S_ISDIR(mode)) ? 'd' : '-'; 
+    // permissions[0] = (S_ISDIR(mode)) ? 'd' : '-'; 
     // user permissions
     permissions[1] = (mode & S_IRUSR) ? 'r' : '-'; 
     permissions[2] = (mode & S_IWUSR) ? 'w' : '-'; 
@@ -62,16 +66,16 @@ static char* getPermissions(mode_t mode, int fileType) {
 }
 
 static char* getFileName(char* fileName) {
-    char linkNameBuffer[MAX_FILE_PATH_SIZE]; // is 100 reasonable size for linked filename????????????
-    ssize_t count = readlink(fileName, linkNameBuffer, 100);
+    char linkNameBuffer[MAX_FILE_PATH_SIZE];
+    ssize_t count = readlink(fileName, linkNameBuffer, MAX_FILE_PATH_SIZE);
     if (count != -1) {
         strncat(fileName, "->", 3);
-        strncat(fileName, linkNameBuffer, strlen(linkNameBuffer));
+        strncat(fileName, linkNameBuffer, count);
     }
     return fileName;
 }
 
-void UnixLs_ls(char* dirName, bool isI, bool isL, int optionsLen) {
+void UnixLs_ls(char* dirName, bool isI, bool isL, bool isR, int optionsLen) {
     printf("\n");
 	DIR* pDir = opendir(dirName);
     if (pDir == NULL) {
@@ -96,11 +100,19 @@ void UnixLs_ls(char* dirName, bool isI, bool isL, int optionsLen) {
         }
         // no options
         if (optionsLen == 0) {
-            printf("%s ", pDirEntry->d_name);
+            if (isR) {
+                printf("%s", pDirEntry->d_name);
+            } else {
+                printf("%s\n", pDirEntry->d_name);
+            }
         } 
         // -i: print the index number of each file
         else if (optionsLen == 1 && isI) {
-            printf("%ld %s  ", statBuffer.st_ino ,pDirEntry->d_name);
+            if (isR) {
+                printf("%ld %s\n", statBuffer.st_ino ,pDirEntry->d_name);
+            } else {
+                printf("%ld %s\n", statBuffer.st_ino ,pDirEntry->d_name);
+            }
         }
         // -l: use a long listing format
         else if (isL) {
@@ -131,7 +143,7 @@ void UnixLs_recurse(char* dirName, bool isI, bool isL, int optionsLen) {
         return;
     }
     printf("\n%s:", dirName);
-    UnixLs_ls(dirName, isI, isL, optionsLen);
+    UnixLs_ls(dirName, isI, isL, true, optionsLen);
     struct dirent *pDirEntry = readdir(pDir);
     while (pDirEntry != NULL) {
         if (strcmp(pDirEntry->d_name, ".") != 0 && strcmp(pDirEntry->d_name, "..") != 0 && pDirEntry->d_type == DT_DIR) {
