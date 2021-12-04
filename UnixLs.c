@@ -93,7 +93,7 @@ static char* getFileName(char* fileName) {
     return fileName;
 }
 
-void UnixLs_ls(char* dirName, bool isI, bool isL, bool isR, int optionsLen) {
+void UnixLs_ls(char* dirName, bool isI, bool isL, int optionsLen) {
     printf("\n");
 	DIR* pDir = opendir(dirName);
     if (pDir == NULL) {
@@ -118,19 +118,11 @@ void UnixLs_ls(char* dirName, bool isI, bool isL, bool isR, int optionsLen) {
         }
         // no options
         if (optionsLen == 0) {
-            if (isR) {
-                printf("%s", pDirEntry->d_name);
-            } else {
-                printf("%s\n", pDirEntry->d_name);
-            }
+            printf("%s\n", pDirEntry->d_name);
         } 
         // -i: print the index number of each file
         else if (optionsLen == 1 && isI) {
-            if (isR) {
-                printf("%ld %s\n", statBuffer.st_ino ,pDirEntry->d_name);
-            } else {
-                printf("%ld %s\n", statBuffer.st_ino ,pDirEntry->d_name);
-            }
+            printf("%ld %s\n", statBuffer.st_ino ,pDirEntry->d_name);
         }
         // -l: use a long listing format
         else if (isL) {
@@ -161,7 +153,7 @@ void UnixLs_recurse(char* dirName, bool isI, bool isL, int optionsLen) {
         return;
     }
     printf("\n%s:", dirName);
-    UnixLs_ls(dirName, isI, isL, true, optionsLen);
+    UnixLs_ls(dirName, isI, isL, optionsLen);
     struct dirent *pDirEntry = readdir(pDir);
     while (pDirEntry != NULL) {
         if (strcmp(pDirEntry->d_name, ".") != 0 && strcmp(pDirEntry->d_name, "..") != 0 && pDirEntry->d_type == DT_DIR) {
